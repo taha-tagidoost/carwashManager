@@ -1,75 +1,127 @@
-'use client';
+'use client'
 
-import { useState, useMemo } from 'react';
-import { CustomerCard } from '@/components/customer-card';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { mockCustomers } from '@/lib/mock-data';
-import { Search, Users, Filter } from 'lucide-react';
+import { useEffect, useState, useCallback } from 'react'
+import { Plus, Search, Phone, Car, Trash2, Loader2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Card } from '@/components/ui/card'
+import Link from 'next/link'
+
+interface Customer {
+  id: string
+  full_name: string
+  phone: string
+  license_plate: string
+  car_brand: string
+  car_model: string
+  created_at: string
+  updated_at: string
+}
 
 export default function DashboardPage() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive' | 'pending'>('all');
-  const [carBrandFilter, setCarBrandFilter] = useState('all');
+  const [customers, setCustomers] = useState<Customer[]>([])
+  const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([])
+  const [searchQuery, setSearchQuery] = useState('')
+  const [carBrandFilter, setCarBrandFilter] = useState('all')
+  const [loading, setLoading] = useState(true)
+  const [seeding, setSeeding] = useState(false)
+  const [stats, setStats] = useState({ totalCustomers: 0, totalVisits: 0 })
 
-  // Get unique car brands
-  const carBrands = useMemo(() => {
-    const brands = new Set(mockCustomers.map((c) => c.vehicle.brand));
-    return Array.from(brands).sort();
-  }, []);
+  const carBrands = ['Toyota', 'Hyundai', 'Kia', 'Peugeot', 'Renault', 'BMW', 'Mercedes', 'Nissan']
 
-  // Filter customers
-  const filteredCustomers = useMemo(() => {
-    return mockCustomers.filter((customer) => {
-      const matchesSearch =
-        customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        customer.phone.includes(searchQuery) ||
-        customer.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        customer.vehicle.licensePlate.includes(searchQuery);
+  const fetchCustomers = useCallback(async () => {
+    try {
+      const response = await fetch('/api/customers')
+      if (response.ok) {
+        const data = await response.json()
+        setCustomers(data)
+        setFilteredCustomers(data)
+      }
+    } catch (error) {
+      console.error('Error fetching customers:', error)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
 
-      const matchesStatus = statusFilter === 'all' || customer.status === statusFilter;
+  const fetchStats = useCallback(async () => {
+    try {
+      const response = await fetch('/api/stats')
+      if (response.ok) {
+        const data = await response.json()
+        setStats(data)
+      }
+    } catch (error) {
+      console.error('Error fetching stats:', error)
+    }
+  }, [])
 
-      const matchesBrand =
-        carBrandFilter === 'all' || customer.vehicle.brand === carBrandFilter;
+  useEffect(() => {
+    fetchCustomers()
+    fetchStats()
+  }, [fetchCustomers, fetchStats])
 
-      return matchesSearch && matchesStatus && matchesBrand;
-    });
-  }, [searchQuery, statusFilter, carBrandFilter]);
+  const handleSeedData = async () => {
+    setSeeding(true)
+    try {
+      const response = await fetch('/api/seed', { method: 'POST' })
+      if (response.ok) {
+        await fetchCustomers()
+        await fetchStats()
+      }
+    } catch (error) {
+      console.error('Error seeding data:', error)
+    } finally {
+      setSeeding(false)
+    }
+  }
 
-  // Statistics
-  const stats = useMemo(() => {
-    const total = mockCustomers.length;
-    const active = mockCustomers.filter((c) => c.status === 'active').length;
-    const inactive = mockCustomers.filter((c) => c.status === 'inactive').length;
-    const pending = mockCustomers.filter((c) => c.status === 'pending').length;
+  useEffect(() => {
+    let filtered = customers
 
-    return { total, active, inactive, pending };
-  }, []);
+    if (searchQuery.trim()) {
+      filtered = filtered.filter(
+        (customer) =>
+          customer.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          customer.phone.includes(searchQuery) ||
+          customer.license_plate.includes(searchQuery) ||
+          customer.car_brand.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    }
+
+    if (carBrandFilter !== 'all') {
+      filtered = filtered.filter((customer) => customer.car_brand === carBrandFilter)
+    }
+
+    setFilteredCustomers(filtered)
+  }, [searchQuery, carBrandFilter, customers])
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('آیا می‌خواهید این مشتری را حذف کنید؟')) return
+
+    try {
+      const response = await fetch(`/api/customers/${id}`, { method: 'DELETE' })
+      if (response.ok) {
+        await fetchCustomers()
+        await fetchStats()
+      }
+    } catch (error) {
+      console.error('Error deleting customer:', error)
+    }
+  }
 
   const resetFilters = () => {
-    setSearchQuery('');
-    setStatusFilter('all');
-    setCarBrandFilter('all');
-  };
+    setSearchQuery('')
+    setCarBrandFilter('all')
+  }
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       {/* Header */}
       <div className="border-b border-gray-200 bg-white shadow-sm">
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-3 mb-2">
-            <Users className="size-8 text-blue-600" />
-            <h1 className="text-3xl font-bold text-gray-900">مشتریان</h1>
-          </div>
-          <p className="text-gray-600">مدیریت اطلاعات مشتریان و خودروهای آنها</p>
+          <h1 className="text-3xl font-bold text-gray-900">مدیریت مشتریان</h1>
+          <p className="text-gray-600">سیستم مدیریت مشتریان و سرویس های شستشوی خودرو</p>
         </div>
       </div>
 
@@ -77,178 +129,177 @@ export default function DashboardPage() {
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {/* Statistics Cards */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+          <StatCard title="کل مشتریان" value={stats.totalCustomers} color="blue" />
+          <StatCard title="کل سرویس‌ها" value={stats.totalVisits} color="green" />
           <StatCard
-            title="کل مشتریان"
-            value={stats.total}
-            icon="👥"
-            color="blue"
+            title="میانگین سرویس"
+            value={stats.totalCustomers > 0 ? (stats.totalVisits / stats.totalCustomers).toFixed(1) : 0}
+            color="purple"
           />
-          <StatCard
-            title="فعال"
-            value={stats.active}
-            icon="✓"
-            color="green"
-          />
-          <StatCard
-            title="غیرفعال"
-            value={stats.inactive}
-            icon="✗"
-            color="gray"
-          />
-          <StatCard
-            title="در انتظار"
-            value={stats.pending}
-            icon="⏳"
-            color="yellow"
-          />
+          <StatCard title="وضعیت سیستم" value="فعال" color="emerald" />
         </div>
 
-        {/* Filters Section */}
+        {/* Actions and Search */}
         <div className="mb-8 space-y-4 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-          <div className="flex items-center gap-2 mb-4">
-            <Filter className="size-5 text-gray-600" />
-            <h2 className="text-lg font-semibold text-gray-900">فیلترها</h2>
+          <div className="flex flex-wrap gap-4 mb-4">
+            <Link href="/customers/new">
+              <Button size="lg" className="gap-2">
+                <Plus className="h-5 w-5" />
+                مشتری جدید
+              </Button>
+            </Link>
+            {customers.length === 0 && (
+              <Button onClick={handleSeedData} variant="outline" disabled={seeding}>
+                {seeding ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    در حال بارگذاری...
+                  </>
+                ) : (
+                  'بارگذاری نمونه داده‌ها'
+                )}
+              </Button>
+            )}
           </div>
 
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            {/* Search Input */}
-            <div className="md:col-span-1">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                جستجو
-              </label>
+          {/* Search and Filters */}
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">جستجو</label>
               <div className="relative">
                 <Search className="absolute right-3 top-3 size-5 text-gray-400" />
                 <Input
                   type="text"
-                  placeholder="نام، شماره، ایمیل، پلاک..."
+                  placeholder="نام، شماره، پلاک..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pr-10"
                 />
               </div>
             </div>
-
-            {/* Status Filter */}
-            <div className="md:col-span-1">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                وضعیت
-              </label>
-              <Select value={statusFilter} onValueChange={(value: any) => setStatusFilter(value)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">همه</SelectItem>
-                  <SelectItem value="active">فعال</SelectItem>
-                  <SelectItem value="inactive">غیرفعال</SelectItem>
-                  <SelectItem value="pending">در انتظار</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Car Brand Filter */}
-            <div className="md:col-span-1">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                برند خودرو
-              </label>
-              <Select value={carBrandFilter} onValueChange={(value) => setCarBrandFilter(value)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">همه</SelectItem>
-                  {carBrands.map((brand) => (
-                    <SelectItem key={brand} value={brand}>
-                      {brand}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">برند خودرو</label>
+              <select
+                value={carBrandFilter}
+                onChange={(e) => setCarBrandFilter(e.target.value)}
+                className="w-full rounded-md border border-gray-300 px-3 py-2 bg-white text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              >
+                <SelectItem value="all">همه برندها</SelectItem>
+                {carBrands.map((brand) => (
+                  <SelectItem key={brand} value={brand}>
+                    {brand}
+                  </SelectItem>
+                ))}
+              </select>
             </div>
           </div>
 
           <div className="flex items-center justify-between pt-4 border-t border-gray-100">
             <p className="text-sm text-gray-600">
-              {filteredCustomers.length} از {mockCustomers.length} مشتری
+              {filteredCustomers.length} از {customers.length} مشتری
             </p>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={resetFilters}
-              className="text-gray-700"
-            >
-              پاک کردن فیلترها
-            </Button>
+            {(searchQuery || carBrandFilter !== 'all') && (
+              <Button variant="outline" size="sm" onClick={resetFilters} className="text-gray-700">
+                پاک کردن فیلترها
+              </Button>
+            )}
           </div>
         </div>
 
-        {/* Customer Grid */}
-        <div>
-          {filteredCustomers.length > 0 ? (
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {filteredCustomers.map((customer) => (
-                <CustomerCard key={customer.id} customer={customer} />
-              ))}
-            </div>
+        {/* Customer List */}
+        <div className="space-y-4">
+          {loading ? (
+            <Card className="p-8 text-center text-gray-500 flex items-center justify-center gap-2">
+              <Loader2 className="h-5 w-5 animate-spin" />
+              در حال بارگذاری...
+            </Card>
+          ) : filteredCustomers.length === 0 ? (
+            <Card className="p-8 text-center text-gray-500">
+              {customers.length === 0 ? 'هیچ مشتری ثبت نشده است' : 'نتیجه‌ای برای جستجو پیدا نشد'}
+            </Card>
           ) : (
-            <div className="rounded-lg border border-gray-200 bg-white p-12 text-center">
-              <Users className="mx-auto size-12 text-gray-400 mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">نتیجه ای یافت نشد</h3>
-              <p className="text-gray-600">
-                با توجه به فیلترهای انتخاب شده، هیچ مشتری یافت نشد.
-              </p>
-              {(searchQuery || statusFilter !== 'all' || carBrandFilter !== 'all') && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={resetFilters}
-                  className="mt-4 text-gray-700"
-                >
-                  پاک کردن فیلترها
-                </Button>
-              )}
-            </div>
+            filteredCustomers.map((customer) => (
+              <Link key={customer.id} href={`/customers/${customer.id}`}>
+                <Card className="p-4 transition-all hover:shadow-md hover:ring-1 hover:ring-blue-600 cursor-pointer">
+                  <div className="grid gap-4 md:grid-cols-3">
+                    <div>
+                      <h3 className="font-bold text-gray-900">{customer.full_name}</h3>
+                      <div className="mt-2 flex items-center gap-2 text-sm text-gray-600">
+                        <Phone className="h-4 w-4" />
+                        {customer.phone}
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">پلاک خودرو</p>
+                      <p className="font-mono text-gray-900">{customer.license_plate}</p>
+                    </div>
+                    <div className="flex items-end justify-between">
+                      <div>
+                        <p className="text-sm text-gray-600">خودرو</p>
+                        <div className="flex items-center gap-2">
+                          <Car className="h-4 w-4" />
+                          <span className="text-gray-900">
+                            {customer.car_brand} {customer.car_model}
+                          </span>
+                        </div>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={(e) => {
+                          e.preventDefault()
+                          handleDelete(customer.id)
+                        }}
+                        className="text-red-600 hover:bg-red-50"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </Card>
+              </Link>
+            ))
           )}
         </div>
       </div>
     </main>
-  );
+  )
 }
 
 function StatCard({
   title,
   value,
-  icon,
   color,
 }: {
-  title: string;
-  value: number;
-  icon: string;
-  color: 'blue' | 'green' | 'gray' | 'yellow';
+  title: string
+  value: string | number
+  color: 'blue' | 'green' | 'purple' | 'emerald'
 }) {
   const colorStyles = {
-    blue: 'bg-blue-50 border-blue-200',
-    green: 'bg-green-50 border-green-200',
-    gray: 'bg-gray-50 border-gray-200',
-    yellow: 'bg-yellow-50 border-yellow-200',
-  };
-
-  const textColorStyles = {
-    blue: 'text-blue-900',
-    green: 'text-green-900',
-    gray: 'text-gray-900',
-    yellow: 'text-yellow-900',
-  };
+    blue: 'bg-blue-50 border-blue-200 text-blue-900',
+    green: 'bg-green-50 border-green-200 text-green-900',
+    purple: 'bg-purple-50 border-purple-200 text-purple-900',
+    emerald: 'bg-emerald-50 border-emerald-200 text-emerald-900',
+  }
 
   return (
     <div className={`rounded-lg border ${colorStyles[color]} p-6`}>
-      <div className="flex items-start justify-between">
-        <div>
-          <p className={`text-sm font-medium ${textColorStyles[color]}`}>{title}</p>
-          <p className={`mt-2 text-3xl font-bold ${textColorStyles[color]}`}>{value}</p>
-        </div>
-        <span className="text-2xl">{icon}</span>
-      </div>
+      <p className="text-sm font-medium">{title}</p>
+      <p className="mt-2 text-3xl font-bold">{value}</p>
     </div>
-  );
+  )
+}
+
+function SelectItem({
+  value,
+  children,
+}: {
+  value: string
+  children: React.ReactNode
+}) {
+  return (
+    <option value={value}>
+      {children}
+    </option>
+  )
 }
