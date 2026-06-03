@@ -315,21 +315,32 @@ export default function CustomerDetailPage() {
               {/* Available Services */}
               <div>
                 <h3 className="font-medium text-gray-900 mb-3">سرویس‌های موجود</h3>
-                <div className="grid grid-cols-2 gap-2">
-                  {services
-                    .filter((s) => s.is_active)
-                    .map((service) => (
-                      <button
-                        key={service.id}
-                        type="button"
-                        onClick={() => handleAddServiceToInvoice(service)}
-                        className="p-3 text-right border border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors"
-                      >
-                        <p className="font-medium text-gray-900">{service.name}</p>
-                        <p className="text-sm text-gray-600">{service.default_price.toLocaleString()} تومان</p>
-                      </button>
-                    ))}
-                </div>
+                {services.filter((s) => s.is_active).length === 0 ? (
+                  <div className="p-6 text-center border border-gray-300 rounded-lg bg-gray-50">
+                    <p className="text-gray-600 mb-3">هیچ سرویسی تعریف نشده است</p>
+                    <Link href="/settings">
+                      <Button variant="outline" size="sm">
+                        افزودن سرویس جدید
+                      </Button>
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-2">
+                    {services
+                      .filter((s) => s.is_active)
+                      .map((service) => (
+                        <button
+                          key={service.id}
+                          type="button"
+                          onClick={() => handleAddServiceToInvoice(service)}
+                          className="p-3 text-right border border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors"
+                        >
+                          <p className="font-medium text-gray-900">{service.name}</p>
+                          <p className="text-sm text-gray-600">{service.default_price.toLocaleString()} تومان</p>
+                        </button>
+                      ))}
+                  </div>
+                )}
               </div>
 
               {/* Invoice Items */}

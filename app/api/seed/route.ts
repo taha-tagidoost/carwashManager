@@ -27,37 +27,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: customersError.message }, { status: 500 })
     }
 
-    // Generate and insert visits for each customer
-    const visits = []
-    const serviceTypes = ['سرویس عادی', 'سرویس VIP', 'واکس', 'تمیز داخل']
-    const prices = [50000, 75000, 100000, 150000, 200000]
-
-    for (const customer of insertedCustomers || []) {
-      const visitCount = Math.floor(Math.random() * 5) + 1
-      for (let i = 0; i < visitCount; i++) {
-        const daysAgo = Math.floor(Math.random() * 90)
-        visits.push({
-          customer_id: customer.id,
-          visit_date: new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000).toISOString(),
-          service_type: serviceTypes[Math.floor(Math.random() * serviceTypes.length)],
-          price: prices[Math.floor(Math.random() * prices.length)],
-          notes: 'سرویس منظم',
-        })
-      }
-    }
-
-    const { error: visitsError } = await supabase.from('visits').insert(visits)
-
-    if (visitsError) {
-      console.error('Error inserting visits:', visitsError)
-      return NextResponse.json({ error: visitsError.message }, { status: 500 })
-    }
+    // Note: Services and visits are not seeded. User must add services manually through Settings page.
+    // This ensures no hardcoded service definitions exist in the codebase.
 
     return NextResponse.json(
       {
-        message: 'Database seeded successfully',
+        message: 'Customers seeded successfully. Please add services in Settings page.',
         customers: insertedCustomers?.length || 0,
-        visits: visits.length,
+        visits: 0,
       },
       { status: 201 }
     )
