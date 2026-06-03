@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import Link from "next/link";
+import { DashboardAnalyticsPreview } from "@/components/dashboard-analytics-preview";
 
 interface Customer {
   id: string;
@@ -188,6 +189,11 @@ export default function DashboardPage() {
             title="درآمد کل"
             value={`${(analytics.totalRevenue / 1000000).toFixed(1)}M`}
           />
+        </div>
+
+        {/* Analytics Preview */}
+        <div className="mb-8">
+          <DashboardAnalyticsPreview />
         </div>
 
         {/* Top Services & Customers */}
