@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import { Plus, Search, Phone, Car, Trash2, Loader2 } from 'lucide-react'
+import { Plus, Search, Phone, Car, Trash2, Loader2, Settings } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
@@ -26,6 +26,14 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [seeding, setSeeding] = useState(false)
   const [stats, setStats] = useState({ totalCustomers: 0, totalVisits: 0 })
+  const [analytics, setAnalytics] = useState({
+    totalRevenue: 0,
+    totalTips: 0,
+    thisMonthRevenue: 0,
+    thisWeekRevenue: 0,
+    topServices: [],
+    topCustomers: [],
+  })
 
   const carBrands = ['Toyota', 'Hyundai', 'Kia', 'Peugeot', 'Renault', 'BMW', 'Mercedes', 'Nissan']
 
@@ -56,10 +64,23 @@ export default function DashboardPage() {
     }
   }, [])
 
+  const fetchAnalytics = useCallback(async () => {
+    try {
+      const response = await fetch('/api/analytics')
+      if (response.ok) {
+        const data = await response.json()
+        setAnalytics(data)
+      }
+    } catch (error) {
+      console.error('Error fetching analytics:', error)
+    }
+  }, [])
+
   useEffect(() => {
     fetchCustomers()
     fetchStats()
-  }, [fetchCustomers, fetchStats])
+    fetchAnalytics()
+  }, [fetchCustomers, fetchStats, fetchAnalytics])
 
   const handleSeedData = async () => {
     setSeeding(true)
@@ -68,6 +89,7 @@ export default function DashboardPage() {
       if (response.ok) {
         await fetchCustomers()
         await fetchStats()
+        await fetchAnalytics()
       }
     } catch (error) {
       console.error('Error seeding data:', error)
@@ -120,8 +142,17 @@ export default function DashboardPage() {
       {/* Header */}
       <div className="border-b border-gray-200 bg-white shadow-sm">
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-          <h1 className="text-3xl font-bold text-gray-900">مدیریت مشتریان</h1>
-          <p className="text-gray-600">سیستم مدیریت مشتریان و سرویس های شستشوی خودرو</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">مدیریت مشتریان</h1>
+              <p className="text-gray-600">سیستم مدیریت مشتریان و سرویس های شستشوی خودرو</p>
+            </div>
+            <Link href="/settings">
+              <Button variant="outline" size="icon">
+                <Settings className="h-5 w-5" />
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
 
@@ -132,12 +163,55 @@ export default function DashboardPage() {
           <StatCard title="کل مشتریان" value={stats.totalCustomers} color="blue" />
           <StatCard title="کل سرویس‌ها" value={stats.totalVisits} color="green" />
           <StatCard
-            title="میانگین سرویس"
-            value={stats.totalCustomers > 0 ? (stats.totalVisits / stats.totalCustomers).toFixed(1) : 0}
+            title="درآمد کل"
+            value={`${(analytics.totalRevenue / 1000000).toFixed(1)}M`}
             color="purple"
           />
-          <StatCard title="وضعیت سیستم" value="فعال" color="emerald" />
+          <StatCard title="انعام‌ها" value={`${(analytics.totalTips / 1000).toFixed(0)}K`} color="emerald" />
         </div>
+
+        {/* Financial Analytics */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+          <AnalyticsCard
+            title="درآمد این ماه"
+            value={analytics.thisMonthRevenue.toLocaleString()}
+            unit="تومان"
+          />
+          <AnalyticsCard
+            title="درآمد این هفته"
+            value={analytics.thisWeekRevenue.toLocaleString()}
+            unit="تومان"
+          />
+        </div>
+
+        {/* Top Services & Customers */}
+        {analytics.topServices.length > 0 && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <Card className="p-6">
+              <h2 className="text-lg font-bold text-gray-900 mb-4">سرویس‌های محبوب</h2>
+              <div className="space-y-2">
+                {analytics.topServices.map((service: any, idx: number) => (
+                  <div key={idx} className="flex justify-between items-center">
+                    <span className="text-gray-600">{service.name}</span>
+                    <span className="font-medium text-gray-900">{service.count} سفارش</span>
+                  </div>
+                ))}
+              </div>
+            </Card>
+
+            <Card className="p-6">
+              <h2 className="text-lg font-bold text-gray-900 mb-4">مشتریان برتر</h2>
+              <div className="space-y-2">
+                {analytics.topCustomers.map((customer: any, idx: number) => (
+                  <div key={idx} className="flex justify-between items-center">
+                    <span className="text-gray-600">{customer.name}</span>
+                    <span className="font-medium text-gray-900">{customer.total.toLocaleString()}</span>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </div>
+        )}
 
         {/* Actions and Search */}
         <div className="mb-8 space-y-4 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
@@ -301,5 +375,24 @@ function SelectItem({
     <option value={value}>
       {children}
     </option>
+  )
+}
+
+function AnalyticsCard({
+  title,
+  value,
+  unit = '',
+}: {
+  title: string
+  value: string | number
+  unit?: string
+}) {
+  return (
+    <Card className="p-6">
+      <p className="text-sm font-medium text-gray-600">{title}</p>
+      <p className="mt-2 text-2xl font-bold text-gray-900">
+        {value} {unit}
+      </p>
+    </Card>
   )
 }
