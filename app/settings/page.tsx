@@ -157,19 +157,19 @@ export default function SettingsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+    <main className="min-h-screen bg-gradient-to-br from-purple-950 via-purple-900 to-violet-900">
       {/* Header */}
-      <div className="border-b border-gray-200 bg-white shadow-sm">
+      <div className="border-b border-purple-800/50 bg-gradient-to-r from-purple-900 to-violet-900 shadow-lg backdrop-blur-md bg-opacity-95">
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
           <div className="flex items-center gap-4">
             <Link href="/">
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" className="hover:bg-purple-800 text-purple-100">
                 <ArrowLeft className="h-5 w-5" />
               </Button>
             </Link>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">تنظیمات</h1>
-              <p className="text-gray-600">مدیریت سرویس‌ها و کارگران</p>
+              <h1 className="text-3xl font-bold text-white">تنظیمات</h1>
+              <p className="text-purple-200 mt-1">مدیریت سرویس‌ها و کارگران</p>
             </div>
           </div>
         </div>
@@ -178,13 +178,13 @@ export default function SettingsPage() {
       {/* Content */}
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {/* Tabs */}
-        <div className="flex gap-4 mb-8 border-b border-gray-200">
+        <div className="flex gap-4 mb-8 border-b border-purple-700/50">
           <button
             onClick={() => setActiveTab('services')}
             className={`pb-3 px-4 font-medium transition-colors ${
               activeTab === 'services'
-                ? 'border-b-2 border-blue-600 text-blue-600'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'border-b-2 border-purple-400 text-purple-200'
+                : 'text-purple-300 hover:text-purple-100'
             }`}
           >
             سرویس‌ها
@@ -193,8 +193,8 @@ export default function SettingsPage() {
             onClick={() => setActiveTab('workers')}
             className={`pb-3 px-4 font-medium transition-colors ${
               activeTab === 'workers'
-                ? 'border-b-2 border-blue-600 text-blue-600'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'border-b-2 border-purple-400 text-purple-200'
+                : 'text-purple-300 hover:text-purple-100'
             }`}
           >
             کارگران
@@ -205,8 +205,8 @@ export default function SettingsPage() {
         {activeTab === 'services' && (
           <div className="space-y-6">
             <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-gray-900">مدیریت سرویس‌ها</h2>
-              <Button onClick={() => setShowAddService(!showAddService)} size="lg" className="gap-2">
+              <h2 className="text-2xl font-bold text-white">مدیریت سرویس‌ها</h2>
+              <Button onClick={() => setShowAddService(!showAddService)} size="lg" className="gap-2 bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700">
                 <Plus className="h-5 w-5" />
                 سرویس جدید
               </Button>
@@ -214,29 +214,31 @@ export default function SettingsPage() {
 
             {/* Add Service Form */}
             {showAddService && (
-              <Card className="p-6">
+              <div className="rounded-xl border border-purple-600/50 bg-purple-900/50 backdrop-blur-sm p-6 shadow-lg">
                 <form onSubmit={handleAddService} className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">نام سرویس</label>
+                    <label className="block text-sm font-medium text-purple-200 mb-2">نام سرویس</label>
                     <Input
                       value={serviceName}
                       onChange={(e) => setServiceName(e.target.value)}
                       placeholder="مثال: روشویی"
+                      className="bg-purple-800/50 border-purple-700 text-white placeholder:text-purple-400 focus:border-purple-500 focus:ring-purple-500"
                       required
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">قیمت پیش‌فرض</label>
+                    <label className="block text-sm font-medium text-purple-200 mb-2">قیمت پیش‌فرض</label>
                     <Input
                       type="number"
                       value={servicePrice}
                       onChange={(e) => setServicePrice(e.target.value)}
                       placeholder="100000"
+                      className="bg-purple-800/50 border-purple-700 text-white placeholder:text-purple-400 focus:border-purple-500 focus:ring-purple-500"
                       required
                     />
                   </div>
                   <div className="flex gap-2">
-                    <Button type="submit" disabled={submittingService}>
+                    <Button type="submit" disabled={submittingService} className="bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700">
                       {submittingService ? (
                         <>
                           <Loader2 className="h-4 w-4 animate-spin mr-2" />
@@ -249,6 +251,7 @@ export default function SettingsPage() {
                     <Button
                       type="button"
                       variant="outline"
+                      className="border-purple-600 text-purple-200 hover:bg-purple-800"
                       onClick={() => {
                         setShowAddService(false)
                         setServiceName('')
@@ -259,43 +262,47 @@ export default function SettingsPage() {
                     </Button>
                   </div>
                 </form>
-              </Card>
+              </div>
             )}
 
             {/* Services List */}
             {loading ? (
-              <Card className="p-8 text-center">
-                <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />
-                <p className="text-gray-600">درحال بارگذاری...</p>
-              </Card>
+              <div className="p-8 text-center rounded-lg border border-purple-700/50 bg-purple-900/30">
+                <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2 text-purple-300" />
+                <p className="text-purple-200">درحال بارگذاری...</p>
+              </div>
             ) : services.length === 0 ? (
-              <Card className="p-8 text-center text-gray-500">
-                <p>هیچ سرویسی تعریف نشده است</p>
-              </Card>
+              <div className="p-8 text-center rounded-lg border border-purple-700/50 bg-purple-900/30">
+                <p className="text-purple-200">هیچ سرویسی تعریف نشده است</p>
+                <Button onClick={() => setShowAddService(true)} className="mt-4 bg-gradient-to-r from-purple-600 to-violet-600">
+                  <Plus className="h-4 w-4 ml-2" />
+                  افزودن سرویس جدید
+                </Button>
+              </div>
             ) : (
               <div className="grid gap-4">
                 {services.map((service) => (
-                  <Card key={service.id} className="p-4">
+                  <div key={service.id} className="rounded-lg border border-purple-600/50 bg-purple-900/40 backdrop-blur-sm p-4 hover:bg-purple-900/60 transition-all">
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
-                        <h3 className="font-bold text-gray-900">{service.name}</h3>
-                        <p className="text-sm text-gray-600">{service.default_price.toLocaleString()} تومان</p>
+                        <h3 className="font-bold text-white">{service.name}</h3>
+                        <p className="text-sm text-purple-300">{service.default_price.toLocaleString()} تومان</p>
                       </div>
                       <div className="flex gap-2">
-                        <Button variant="ghost" size="sm" disabled>
+                        <Button variant="ghost" size="sm" disabled className="text-purple-400">
                           <Edit2 className="h-4 w-4" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => handleDeleteService(service.id)}
-                          className="text-red-600 hover:bg-red-50"
+                          className="text-red-400 hover:bg-red-900/50"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     </div>
-                  </Card>
+                  </div>
                 ))}
               </div>
             )}
@@ -306,8 +313,8 @@ export default function SettingsPage() {
         {activeTab === 'workers' && (
           <div className="space-y-6">
             <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-gray-900">مدیریت کارگران</h2>
-              <Button onClick={() => setShowAddWorker(!showAddWorker)} size="lg" className="gap-2">
+              <h2 className="text-2xl font-bold text-white">مدیریت کارگران</h2>
+              <Button onClick={() => setShowAddWorker(!showAddWorker)} size="lg" className="gap-2 bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700">
                 <Plus className="h-5 w-5" />
                 کارگر جدید
               </Button>
@@ -315,27 +322,29 @@ export default function SettingsPage() {
 
             {/* Add Worker Form */}
             {showAddWorker && (
-              <Card className="p-6">
+              <div className="rounded-xl border border-purple-600/50 bg-purple-900/50 backdrop-blur-sm p-6 shadow-lg">
                 <form onSubmit={handleAddWorker} className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">نام کارگر</label>
+                    <label className="block text-sm font-medium text-purple-200 mb-2">نام کارگر</label>
                     <Input
                       value={workerName}
                       onChange={(e) => setWorkerName(e.target.value)}
                       placeholder="مثال: علی"
+                      className="bg-purple-800/50 border-purple-700 text-white placeholder:text-purple-400 focus:border-purple-500 focus:ring-purple-500"
                       required
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">شماره تماس</label>
+                    <label className="block text-sm font-medium text-purple-200 mb-2">شماره تماس</label>
                     <Input
                       value={workerPhone}
                       onChange={(e) => setWorkerPhone(e.target.value)}
                       placeholder="09101234567"
+                      className="bg-purple-800/50 border-purple-700 text-white placeholder:text-purple-400 focus:border-purple-500 focus:ring-purple-500"
                     />
                   </div>
                   <div className="flex gap-2">
-                    <Button type="submit" disabled={submittingWorker}>
+                    <Button type="submit" disabled={submittingWorker} className="bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700">
                       {submittingWorker ? (
                         <>
                           <Loader2 className="h-4 w-4 animate-spin mr-2" />
@@ -348,6 +357,7 @@ export default function SettingsPage() {
                     <Button
                       type="button"
                       variant="outline"
+                      className="border-purple-600 text-purple-200 hover:bg-purple-800"
                       onClick={() => {
                         setShowAddWorker(false)
                         setWorkerName('')
@@ -358,43 +368,47 @@ export default function SettingsPage() {
                     </Button>
                   </div>
                 </form>
-              </Card>
+              </div>
             )}
 
             {/* Workers List */}
             {loading ? (
-              <Card className="p-8 text-center">
-                <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />
-                <p className="text-gray-600">درحال بارگذاری...</p>
-              </Card>
+              <div className="p-8 text-center rounded-lg border border-purple-700/50 bg-purple-900/30">
+                <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2 text-purple-300" />
+                <p className="text-purple-200">درحال بارگذاری...</p>
+              </div>
             ) : workers.length === 0 ? (
-              <Card className="p-8 text-center text-gray-500">
-                <p>هیچ کارگری تعریف نشده است</p>
-              </Card>
+              <div className="p-8 text-center rounded-lg border border-purple-700/50 bg-purple-900/30">
+                <p className="text-purple-200">هیچ کارگری تعریف نشده است</p>
+                <Button onClick={() => setShowAddWorker(true)} className="mt-4 bg-gradient-to-r from-purple-600 to-violet-600">
+                  <Plus className="h-4 w-4 ml-2" />
+                  افزودن کارگر جدید
+                </Button>
+              </div>
             ) : (
               <div className="grid gap-4">
                 {workers.map((worker) => (
-                  <Card key={worker.id} className="p-4">
+                  <div key={worker.id} className="rounded-lg border border-purple-600/50 bg-purple-900/40 backdrop-blur-sm p-4 hover:bg-purple-900/60 transition-all">
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
-                        <h3 className="font-bold text-gray-900">{worker.name}</h3>
-                        {worker.phone && <p className="text-sm text-gray-600">{worker.phone}</p>}
+                        <h3 className="font-bold text-white">{worker.name}</h3>
+                        {worker.phone && <p className="text-sm text-purple-300">{worker.phone}</p>}
                       </div>
                       <div className="flex gap-2">
-                        <Button variant="ghost" size="sm" disabled>
+                        <Button variant="ghost" size="sm" disabled className="text-purple-400">
                           <Edit2 className="h-4 w-4" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => handleDeleteWorker(worker.id)}
-                          className="text-red-600 hover:bg-red-50"
+                          className="text-red-400 hover:bg-red-900/50"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     </div>
-                  </Card>
+                  </div>
                 ))}
               </div>
             )}

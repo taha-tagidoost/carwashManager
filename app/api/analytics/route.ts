@@ -29,6 +29,16 @@ export async function GET() {
         return sum
       }, 0) || 0
 
+    // Revenue today
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString()
+    const todayRevenue =
+      visits?.reduce((sum, v) => {
+        if (new Date(v.visit_date) >= new Date(todayStart)) {
+          return sum + (v.total_amount || 0)
+        }
+        return sum
+      }, 0) || 0
+
     // Revenue this week
     const weekStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString()
     const thisWeekRevenue =
@@ -98,8 +108,9 @@ export async function GET() {
     return NextResponse.json({
       totalRevenue,
       totalTips,
-      thisMonthRevenue,
+      todayRevenue,
       thisWeekRevenue,
+      thisMonthRevenue,
       topServices,
       topCustomers,
       revenueByMonth: Object.entries(revenueByMonth).map(([month, revenue]) => ({ month, revenue })),

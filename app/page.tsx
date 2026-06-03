@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import { Plus, Search, Phone, Car, Trash2, Loader2, Settings } from 'lucide-react'
+import { Plus, Search, Phone, Car, Trash2, Loader2, Settings, TrendingUp } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
@@ -22,20 +22,17 @@ export default function DashboardPage() {
   const [customers, setCustomers] = useState<Customer[]>([])
   const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([])
   const [searchQuery, setSearchQuery] = useState('')
-  const [carBrandFilter, setCarBrandFilter] = useState('all')
   const [loading, setLoading] = useState(true)
-  const [seeding, setSeeding] = useState(false)
   const [stats, setStats] = useState({ totalCustomers: 0, totalVisits: 0 })
   const [analytics, setAnalytics] = useState({
     totalRevenue: 0,
     totalTips: 0,
     thisMonthRevenue: 0,
     thisWeekRevenue: 0,
+    todayRevenue: 0,
     topServices: [],
     topCustomers: [],
   })
-
-  const carBrands = ['Toyota', 'Hyundai', 'Kia', 'Peugeot', 'Renault', 'BMW', 'Mercedes', 'Nissan']
 
   const fetchCustomers = useCallback(async () => {
     try {
@@ -82,22 +79,6 @@ export default function DashboardPage() {
     fetchAnalytics()
   }, [fetchCustomers, fetchStats, fetchAnalytics])
 
-  const handleSeedData = async () => {
-    setSeeding(true)
-    try {
-      const response = await fetch('/api/seed', { method: 'POST' })
-      if (response.ok) {
-        await fetchCustomers()
-        await fetchStats()
-        await fetchAnalytics()
-      }
-    } catch (error) {
-      console.error('Error seeding data:', error)
-    } finally {
-      setSeeding(false)
-    }
-  }
-
   useEffect(() => {
     let filtered = customers
 
@@ -111,12 +92,8 @@ export default function DashboardPage() {
       )
     }
 
-    if (carBrandFilter !== 'all') {
-      filtered = filtered.filter((customer) => customer.car_brand === carBrandFilter)
-    }
-
     setFilteredCustomers(filtered)
-  }, [searchQuery, carBrandFilter, customers])
+  }, [searchQuery, customers])
 
   const handleDelete = async (id: string) => {
     if (!confirm('آیا می‌خواهید این مشتری را حذف کنید؟')) return
@@ -138,17 +115,17 @@ export default function DashboardPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+    <main className="min-h-screen bg-gradient-to-br from-purple-950 via-purple-900 to-violet-900">
       {/* Header */}
-      <div className="border-b border-gray-200 bg-white shadow-sm">
+      <div className="border-b border-purple-800/50 bg-gradient-to-r from-purple-900 to-violet-900 shadow-lg backdrop-blur-md bg-opacity-95">
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">مدیریت مشتریان</h1>
-              <p className="text-gray-600">سیستم مدیریت مشتریان و سرویس های شستشوی خودرو</p>
+              <h1 className="text-4xl font-bold text-white">مدیریت شستشوی خودرو</h1>
+              <p className="text-purple-200 mt-1">سیستم مدیریت حرفه‌ای مشتریان و سرویس‌ها</p>
             </div>
             <Link href="/settings">
-              <Button variant="outline" size="icon">
+              <Button variant="ghost" size="icon" className="hover:bg-purple-800 text-purple-100">
                 <Settings className="h-5 w-5" />
               </Button>
             </Link>
@@ -158,30 +135,19 @@ export default function DashboardPage() {
 
       {/* Content */}
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        {/* Statistics Cards */}
+        {/* Statistics Cards - Premium Design */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
-          <StatCard title="کل مشتریان" value={stats.totalCustomers} color="blue" />
-          <StatCard title="کل سرویس‌ها" value={stats.totalVisits} color="green" />
-          <StatCard
-            title="درآمد کل"
-            value={`${(analytics.totalRevenue / 1000000).toFixed(1)}M`}
-            color="purple"
-          />
-          <StatCard title="انعام‌ها" value={`${(analytics.totalTips / 1000).toFixed(0)}K`} color="emerald" />
+          <StatCard title="درآمد امروز" value={analytics.todayRevenue.toLocaleString()} icon="💰" />
+          <StatCard title="درآمد این هفته" value={analytics.thisWeekRevenue.toLocaleString()} icon="📊" />
+          <StatCard title="درآمد این ماه" value={analytics.thisMonthRevenue.toLocaleString()} icon="📈" />
+          <StatCard title="مجموع انعام" value={analytics.totalTips.toLocaleString()} icon="🎁" />
         </div>
 
-        {/* Financial Analytics */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
-          <AnalyticsCard
-            title="درآمد این ماه"
-            value={analytics.thisMonthRevenue.toLocaleString()}
-            unit="تومان"
-          />
-          <AnalyticsCard
-            title="درآمد این هفته"
-            value={analytics.thisWeekRevenue.toLocaleString()}
-            unit="تومان"
-          />
+        {/* Key Metrics */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 mb-8">
+          <MetricCard title="تعداد مشتریان" value={stats.totalCustomers} />
+          <MetricCard title="تعداد مراجعات" value={stats.totalVisits} />
+          <MetricCard title="درآمد کل" value={`${(analytics.totalRevenue / 1000000).toFixed(1)}M`} />
         </div>
 
         {/* Top Services & Customers */}
@@ -214,105 +180,92 @@ export default function DashboardPage() {
         )}
 
         {/* Actions and Search */}
-        <div className="mb-8 space-y-4 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-          <div className="flex flex-wrap gap-4 mb-4">
+        <div className="mb-8 space-y-4 rounded-xl border border-purple-700/50 bg-purple-900/50 backdrop-blur-sm p-6 shadow-lg">
+          <div className="flex flex-wrap gap-3 mb-4">
             <Link href="/customers/new">
-              <Button size="lg" className="gap-2">
+              <Button size="lg" className="gap-2 bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700">
                 <Plus className="h-5 w-5" />
                 مشتری جدید
               </Button>
             </Link>
-            {customers.length === 0 && (
-              <Button onClick={handleSeedData} variant="outline" disabled={seeding}>
-                {seeding ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    در حال بارگذاری...
-                  </>
-                ) : (
-                  'بارگذاری نمونه داده‌ها'
-                )}
+            <Link href="/settings">
+              <Button size="lg" variant="outline" className="gap-2 border-purple-600 text-purple-100 hover:bg-purple-800">
+                <Settings className="h-5 w-5" />
+                تنظیمات
               </Button>
-            )}
+            </Link>
           </div>
 
-          {/* Search and Filters */}
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">جستجو</label>
-              <div className="relative">
-                <Search className="absolute right-3 top-3 size-5 text-gray-400" />
-                <Input
-                  type="text"
-                  placeholder="نام، شماره، پلاک..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pr-10"
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">برند خودرو</label>
-              <select
-                value={carBrandFilter}
-                onChange={(e) => setCarBrandFilter(e.target.value)}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 bg-white text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              >
-                <SelectItem value="all">همه برندها</SelectItem>
-                {carBrands.map((brand) => (
-                  <SelectItem key={brand} value={brand}>
-                    {brand}
-                  </SelectItem>
-                ))}
-              </select>
+          {/* Search */}
+          <div>
+            <label className="block text-sm font-medium text-purple-100 mb-2">جستجو</label>
+            <div className="relative">
+              <Search className="absolute right-3 top-3 size-5 text-purple-400" />
+              <Input
+                type="text"
+                placeholder="جستجو نام، شماره، یا پلاک..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pr-10 bg-purple-800/50 border-purple-700 text-white placeholder:text-purple-300 focus:border-purple-500 focus:ring-purple-500"
+              />
             </div>
           </div>
 
-          <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-            <p className="text-sm text-gray-600">
+          <div className="flex items-center justify-between pt-2">
+            <p className="text-sm text-purple-200">
               {filteredCustomers.length} از {customers.length} مشتری
             </p>
-            {(searchQuery || carBrandFilter !== 'all') && (
-              <Button variant="outline" size="sm" onClick={resetFilters} className="text-gray-700">
-                پاک کردن فیلترها
+            {searchQuery && (
+              <Button variant="outline" size="sm" onClick={resetFilters} className="text-purple-200 border-purple-600 hover:bg-purple-800">
+                پاک کردن جستجو
               </Button>
             )}
           </div>
         </div>
 
         {/* Customer List */}
-        <div className="space-y-4">
+        <div className="space-y-3">
           {loading ? (
-            <Card className="p-8 text-center text-gray-500 flex items-center justify-center gap-2">
-              <Loader2 className="h-5 w-5 animate-spin" />
-              در حال بارگذاری...
-            </Card>
+            <div className="p-8 text-center flex items-center justify-center gap-2 rounded-lg border border-purple-700/50 bg-purple-900/30">
+              <Loader2 className="h-5 w-5 animate-spin text-purple-300" />
+              <span className="text-purple-200">در حال بارگذاری...</span>
+            </div>
           ) : filteredCustomers.length === 0 ? (
-            <Card className="p-8 text-center text-gray-500">
-              {customers.length === 0 ? 'هیچ مشتری ثبت نشده است' : 'نتیجه‌ای برای جستجو پیدا نشد'}
-            </Card>
+            <div className="p-8 text-center rounded-lg border border-purple-700/50 bg-purple-900/30">
+              <p className="text-purple-200">
+                {customers.length === 0 ? 'هیچ مشتری ثبت نشده است' : 'نتیجه‌ای برای جستجو پیدا نشد'}
+              </p>
+              {customers.length === 0 && (
+                <Link href="/customers/new" className="mt-4 inline-block">
+                  <Button className="bg-gradient-to-r from-purple-600 to-violet-600">
+                    <Plus className="h-4 w-4 ml-2" />
+                    اولین مشتری را اضافه کنید
+                  </Button>
+                </Link>
+              )}
+            </div>
           ) : (
             filteredCustomers.map((customer) => (
               <Link key={customer.id} href={`/customers/${customer.id}`}>
-                <Card className="p-4 transition-all hover:shadow-md hover:ring-1 hover:ring-blue-600 cursor-pointer">
+                <div className="p-4 rounded-lg border border-purple-700/50 bg-purple-900/40 backdrop-blur-sm hover:bg-purple-900/60 transition-all hover:shadow-lg hover:ring-1 hover:ring-purple-500 cursor-pointer group">
                   <div className="grid gap-4 md:grid-cols-3">
                     <div>
-                      <h3 className="font-bold text-gray-900">{customer.full_name}</h3>
-                      <div className="mt-2 flex items-center gap-2 text-sm text-gray-600">
+                      <h3 className="font-bold text-white group-hover:text-purple-200">{customer.full_name}</h3>
+                      <div className="mt-2 flex items-center gap-2 text-sm text-purple-300">
                         <Phone className="h-4 w-4" />
                         {customer.phone}
                       </div>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-600">پلاک خودرو</p>
-                      <p className="font-mono text-gray-900">{customer.license_plate}</p>
+                      <p className="text-sm text-purple-300">پلاک خودرو</p>
+                      <p className="font-mono text-purple-100">{customer.license_plate}</p>
                     </div>
                     <div className="flex items-end justify-between">
                       <div>
-                        <p className="text-sm text-gray-600">خودرو</p>
+                        <p className="text-sm text-purple-300">خودرو</p>
                         <div className="flex items-center gap-2">
                           <Car className="h-4 w-4" />
-                          <span className="text-gray-900">
+                          <span className="text-purple-100">
                             {customer.car_brand} {customer.car_model}
                           </span>
                         </div>
@@ -324,13 +277,13 @@ export default function DashboardPage() {
                           e.preventDefault()
                           handleDelete(customer.id)
                         }}
-                        className="text-red-600 hover:bg-red-50"
+                        className="text-red-400 hover:bg-red-900/50"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>
-                </Card>
+                </div>
               </Link>
             ))
           )}
@@ -343,56 +296,36 @@ export default function DashboardPage() {
 function StatCard({
   title,
   value,
-  color,
+  icon = '📊',
 }: {
   title: string
   value: string | number
-  color: 'blue' | 'green' | 'purple' | 'emerald'
+  icon?: string
 }) {
-  const colorStyles = {
-    blue: 'bg-blue-50 border-blue-200 text-blue-900',
-    green: 'bg-green-50 border-green-200 text-green-900',
-    purple: 'bg-purple-50 border-purple-200 text-purple-900',
-    emerald: 'bg-emerald-50 border-emerald-200 text-emerald-900',
-  }
-
   return (
-    <div className={`rounded-lg border ${colorStyles[color]} p-6`}>
-      <p className="text-sm font-medium">{title}</p>
-      <p className="mt-2 text-3xl font-bold">{value}</p>
+    <div className="rounded-xl border border-purple-600/50 bg-gradient-to-br from-purple-800/50 to-violet-800/50 backdrop-blur-sm p-6 shadow-lg hover:shadow-xl transition-shadow">
+      <div className="flex items-start justify-between">
+        <div>
+          <p className="text-sm font-medium text-purple-200">{title}</p>
+          <p className="mt-2 text-3xl font-bold text-white">{value}</p>
+        </div>
+        <span className="text-3xl">{icon}</span>
+      </div>
     </div>
   )
 }
 
-function SelectItem({
-  value,
-  children,
-}: {
-  value: string
-  children: React.ReactNode
-}) {
-  return (
-    <option value={value}>
-      {children}
-    </option>
-  )
-}
-
-function AnalyticsCard({
+function MetricCard({
   title,
   value,
-  unit = '',
 }: {
   title: string
   value: string | number
-  unit?: string
 }) {
   return (
-    <Card className="p-6">
-      <p className="text-sm font-medium text-gray-600">{title}</p>
-      <p className="mt-2 text-2xl font-bold text-gray-900">
-        {value} {unit}
-      </p>
-    </Card>
+    <div className="rounded-xl border border-purple-600/50 bg-gradient-to-br from-violet-800/50 to-purple-800/50 backdrop-blur-sm p-6 shadow-lg">
+      <p className="text-sm font-medium text-purple-200">{title}</p>
+      <p className="mt-3 text-4xl font-bold text-white">{value}</p>
+    </div>
   )
 }
