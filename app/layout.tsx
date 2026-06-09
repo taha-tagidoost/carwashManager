@@ -1,10 +1,6 @@
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
-<<<<<<< HEAD
-=======
-import { VehicleInitializer } from '@/components/vehicle-initializer'
->>>>>>> 6e0a88a (initial commit - car wash crm)
 import './globals.css'
 
 const _geist = Geist({ subsets: ["latin"] });
@@ -41,10 +37,6 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="font-sans antialiased">
-<<<<<<< HEAD
-=======
-        <VehicleInitializer />
->>>>>>> 6e0a88a (initial commit - car wash crm)
         {children}
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
