@@ -6,11 +6,6 @@ import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
 import { ArrowLeft, Plus, Trash2, Edit2, Loader2 } from 'lucide-react'
 import Link from 'next/link'
-<<<<<<< HEAD
-=======
-import { VehicleBrandsSection } from '@/components/vehicle-brands-section'
-import { VehicleModelsSection } from '@/components/vehicle-models-section'
->>>>>>> 6e0a88a (initial commit - car wash crm)
 
 interface Service {
   id: string
@@ -32,11 +27,7 @@ export default function SettingsPage() {
   const [services, setServices] = useState<Service[]>([])
   const [workers, setWorkers] = useState<Worker[]>([])
   const [loading, setLoading] = useState(true)
-<<<<<<< HEAD
   const [activeTab, setActiveTab] = useState<'services' | 'workers'>('services')
-=======
-  const [activeTab, setActiveTab] = useState<'services' | 'workers' | 'vehicles'>('services')
->>>>>>> 6e0a88a (initial commit - car wash crm)
 
   // Service form states
   const [showAddService, setShowAddService] = useState(false)
@@ -187,17 +178,10 @@ export default function SettingsPage() {
       {/* Content */}
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {/* Tabs */}
-<<<<<<< HEAD
         <div className="flex gap-4 mb-8 border-b border-purple-700/50">
           <button
             onClick={() => setActiveTab('services')}
             className={`pb-3 px-4 font-medium transition-colors ${
-=======
-        <div className="flex gap-4 mb-8 border-b border-purple-700/50 overflow-x-auto">
-          <button
-            onClick={() => setActiveTab('services')}
-            className={`pb-3 px-4 font-medium transition-colors whitespace-nowrap ${
->>>>>>> 6e0a88a (initial commit - car wash crm)
               activeTab === 'services'
                 ? 'border-b-2 border-purple-400 text-purple-200'
                 : 'text-purple-300 hover:text-purple-100'
@@ -207,11 +191,7 @@ export default function SettingsPage() {
           </button>
           <button
             onClick={() => setActiveTab('workers')}
-<<<<<<< HEAD
             className={`pb-3 px-4 font-medium transition-colors ${
-=======
-            className={`pb-3 px-4 font-medium transition-colors whitespace-nowrap ${
->>>>>>> 6e0a88a (initial commit - car wash crm)
               activeTab === 'workers'
                 ? 'border-b-2 border-purple-400 text-purple-200'
                 : 'text-purple-300 hover:text-purple-100'
@@ -219,19 +199,6 @@ export default function SettingsPage() {
           >
             کارگران
           </button>
-<<<<<<< HEAD
-=======
-          <button
-            onClick={() => setActiveTab('vehicles')}
-            className={`pb-3 px-4 font-medium transition-colors whitespace-nowrap ${
-              activeTab === 'vehicles'
-                ? 'border-b-2 border-purple-400 text-purple-200'
-                : 'text-purple-300 hover:text-purple-100'
-            }`}
-          >
-            خودروها
-          </button>
->>>>>>> 6e0a88a (initial commit - car wash crm)
         </div>
 
         {/* Services Tab */}
@@ -447,24 +414,6 @@ export default function SettingsPage() {
             )}
           </div>
         )}
-<<<<<<< HEAD
-=======
-
-        {/* Vehicles Tab */}
-        {activeTab === 'vehicles' && (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-bold text-white mb-6">مدیریت خودروها</h2>
-              <p className="text-purple-200 mb-6">برندها و مدل‌های خودرویی را مدیریت کنید</p>
-            </div>
-
-            <div className="grid gap-6 lg:grid-cols-2">
-              <VehicleBrandsSection />
-              <VehicleModelsSection />
-            </div>
-          </div>
-        )}
->>>>>>> 6e0a88a (initial commit - car wash crm)
       </div>
     </main>
   )
