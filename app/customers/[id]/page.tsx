@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
-import { ArrowLeft, Plus, Trash2, Loader2, X } from 'lucide-react'
+import { ArrowLeft, Plus, Trash2, Loader2, X, Receipt } from 'lucide-react'
 import Link from 'next/link'
 
 interface Customer {
@@ -164,6 +164,20 @@ export default function CustomerDetailPage() {
   const servicesTotal = invoiceItems.reduce((sum, item) => sum + item.subtotal, 0)
   const finalTotal = servicesTotal + (parseFloat(tipAmount) || 0)
 
+  // Fire-and-forget print job. Never blocks or breaks the order flow.
+  const triggerPrint = async (payload: { customer: string; service: string; price: number }) => {
+    try {
+      await fetch('/api/print', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+    } catch (error) {
+      // Handle errors silently so printing failures don't affect the UI.
+      console.error('[v0] Auto-print failed:', error)
+    }
+  }
+
   const handleSubmitInvoice = async (e: React.FormEvent) => {
     e.preventDefault()
     if (invoiceItems.length === 0) return
@@ -201,6 +215,17 @@ export default function CustomerDetailPage() {
           }),
         })
       }
+
+      // Order created successfully -> automatically trigger printing.
+      // Combine all selected services into a single label for the receipt.
+      const serviceLabel = invoiceItems
+        .map((item) => (item.quantity > 1 ? `${item.service_name} x${item.quantity}` : item.service_name))
+        .join('، ')
+      void triggerPrint({
+        customer: customer?.full_name ?? '',
+        service: serviceLabel,
+        price: finalTotal,
+      })
 
       // Reset form
       setInvoiceItems([])
@@ -475,12 +500,19 @@ export default function CustomerDetailPage() {
                         <p className="text-sm text-gray-600">{visit.total_amount.toLocaleString()} تومان</p>
                       )}
                     </div>
-                    <button
-                      onClick={() => handleDeleteVisit(visit.id)}
-                      className="p-1 text-red-600 hover:bg-red-50 rounded"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
+                    <div className="flex items-center gap-1">
+                      <Link href={`/receipt/${visit.id}`}>
+                        <button className="p-1 text-gray-500 hover:bg-gray-100 rounded" title="مشاهده و چاپ صورتحساب">
+                          <Receipt className="h-4 w-4" />
+                        </button>
+                      </Link>
+                      <button
+                        onClick={() => handleDeleteVisit(visit.id)}
+                        className="p-1 text-red-600 hover:bg-red-50 rounded"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
                   </div>
                   {visit.notes && <p className="text-sm text-gray-600 mt-2">{visit.notes}</p>}
                 </Card>

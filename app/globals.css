@@ -127,3 +127,34 @@
     font-family: "yekanBakh" !important;
   }
 }
+
+/* Thermal printing: 80mm roll, black & white only */
+@media print {
+  body {
+    background: #fff !important;
+  }
+  /* Hide everything except the receipt */
+  body * {
+    visibility: hidden;
+  }
+  .receipt,
+  .receipt * {
+    visibility: visible;
+  }
+  .receipt {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 80mm !important;
+    margin: 0 !important;
+    padding: 2mm !important;
+    color: #000 !important;
+    background: #fff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  @page {
+    size: 80mm auto;
+    margin: 0;
+  }
+}
