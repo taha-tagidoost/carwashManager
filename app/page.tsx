@@ -15,6 +15,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import Link from "next/link";
+<<<<<<< HEAD
+=======
+import { DashboardAnalyticsPreview } from "@/components/dashboard-analytics-preview";
+>>>>>>> 6e0a88a (initial commit - car wash crm)
 
 interface Customer {
   id: string;
@@ -190,6 +194,14 @@ export default function DashboardPage() {
           />
         </div>
 
+<<<<<<< HEAD
+=======
+        {/* Analytics Preview */}
+        <div className="mb-8">
+          <DashboardAnalyticsPreview />
+        </div>
+
+>>>>>>> 6e0a88a (initial commit - car wash crm)
         {/* Top Services & Customers */}
         {analytics.topServices.length > 0 && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8 ">
