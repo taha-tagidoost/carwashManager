@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,76 +8,39 @@ import { Card } from "@/components/ui/card";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
 
-interface VehicleBrand {
-  id: string;
-  name: string;
-}
+const CAR_BRANDS = [
+  "Toyota",
+  "Hyundai",
+  "Kia",
+  "Peugeot",
+  "Renault",
+  "BMW",
+  "Mercedes",
+  "Nissan",
+];
 
-interface VehicleModel {
-  id: string;
-  name: string;
-}
+const CAR_MODELS: Record<string, string[]> = {
+  Toyota: ["Corolla", "Camry", "RAV4", "Yaris", "Prius"],
+  Hyundai: ["Elantra", "Tucson", "Sonata", "i10", "Accent"],
+  Kia: ["Cerato", "Sportage", "Optima", "Picanto", "Rio"],
+  Peugeot: ["206", "207", "308", "405", "2008"],
+  Renault: ["Duster", "Sandero", "Clio", "Laguna", "Scenic"],
+  BMW: ["3 Series", "5 Series", "7 Series", "X3", "X5"],
+  Mercedes: ["C-Class", "E-Class", "S-Class", "GLE", "GLC"],
+  Nissan: ["Altima", "Maxima", "Qashqai", "Pathfinder", "Rogue"],
+};
 
 export default function NewCustomerPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [dataLoading, setDataLoading] = useState(true);
-  const [brands, setBrands] = useState<VehicleBrand[]>([]);
-  const [models, setModels] = useState<VehicleModel[]>([]);
-  const [selectedBrand, setSelectedBrand] = useState<string>("");
-  const [customBrandInput, setCustomBrandInput] = useState("");
-  const [customModelInput, setCustomModelInput] = useState("");
+  const [selectedBrand, setSelectedBrand] = useState("Toyota");
   const [formData, setFormData] = useState({
     full_name: "",
     phone: "",
     license_plate: "",
-    car_brand: "",
-    car_model: "",
+    car_brand: "Toyota",
+    car_model: "Corolla",
   });
-
-  useEffect(() => {
-    fetchVehicles();
-  }, []);
-
-  const fetchVehicles = async () => {
-    try {
-      const response = await fetch("/api/vehicle-brands");
-      if (response.ok) {
-        const data = await response.json();
-        setBrands(data);
-        if (data.length > 0) {
-          setSelectedBrand(data[0].id);
-          setFormData((prev) => ({
-            ...prev,
-            car_brand: data[0].name,
-          }));
-          fetchModelsByBrand(data[0].id);
-        }
-      }
-    } catch (error) {
-      console.error("Error fetching vehicles:", error);
-    } finally {
-      setDataLoading(false);
-    }
-  };
-
-  const fetchModelsByBrand = async (brandId: string) => {
-    try {
-      const response = await fetch(`/api/vehicle-models?brand_id=${brandId}`);
-      if (response.ok) {
-        const data = await response.json();
-        setModels(data);
-        if (data.length > 0) {
-          setFormData((prev) => ({
-            ...prev,
-            car_model: data[0].name,
-          }));
-        }
-      }
-    } catch (error) {
-      console.error("Error fetching models:", error);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -108,50 +71,12 @@ export default function NewCustomerPage() {
     }
   };
 
-  const handleBrandChange = (brandId: string) => {
-    if (brandId === "other") {
-      setSelectedBrand("other");
-      setFormData({
-        ...formData,
-        car_brand: customBrandInput,
-        car_model: customModelInput,
-      });
-    } else {
-      setSelectedBrand(brandId);
-      const selected = brands.find((b) => b.id === brandId);
-      if (selected) {
-        setFormData({
-          ...formData,
-          car_brand: selected.name,
-          car_model: "",
-        });
-        fetchModelsByBrand(brandId);
-        setCustomBrandInput("");
-        setCustomModelInput("");
-      }
-    }
-  };
-
-  const handleCustomBrandChange = (value: string) => {
-    setCustomBrandInput(value);
+  const handleBrandChange = (brand: string) => {
+    setSelectedBrand(brand);
     setFormData({
       ...formData,
-      car_brand: value,
-    });
-  };
-
-  const handleCustomModelChange = (value: string) => {
-    setCustomModelInput(value);
-    setFormData({
-      ...formData,
-      car_model: value,
-    });
-  };
-
-  const handleModelChange = (modelName: string) => {
-    setFormData({
-      ...formData,
-      car_model: modelName,
+      car_brand: brand,
+      car_model: CAR_MODELS[brand][0],
     });
   };
 
@@ -262,7 +187,6 @@ export default function NewCustomerPage() {
               <select
                 value={selectedBrand}
                 onChange={(e) => handleBrandChange(e.target.value)}
-                disabled={dataLoading}
                 className="
                 w-full
                 rounded-md
@@ -276,90 +200,47 @@ export default function NewCustomerPage() {
                 focus:outline-none
                 focus:ring-1
                 focus:ring-[#8B5CF6]
-                disabled:opacity-50
                 "
               >
-                {brands.map((brand) => (
-                  <option key={brand.id} value={brand.id}>
-                    {brand.name}
+                {CAR_BRANDS.map((brand) => (
+                  <option key={brand} value={brand}>
+                    {brand}
                   </option>
                 ))}
-                <option value="other">سایر</option>
               </select>
             </div>
-
-            {/* Custom Brand Input (if Other is selected) */}
-            {selectedBrand === "other" && (
-              <div>
-                <label className="block text-sm font-medium text-[#E9D5FF] mb-2">
-                  برند خودرو (دیگر) *
-                </label>
-                <Input
-                  type="text"
-                  placeholder="نام برند را وارد کنید"
-                  value={customBrandInput}
-                  onChange={(e) => handleCustomBrandChange(e.target.value)}
-                  className="
-                   bg-[#1C1638]
-                   border-[#3B2A66]
-                   text-white
-                   placeholder:text-[#8B78C7]
-                   focus:border-[#8B5CF6]
-                   focus:ring-[#8B5CF6]
-                  "
-                />
-              </div>
-            )}
 
             {/* Car Model */}
             <div>
               <label className="block text-sm font-medium text-[#E9D5FF] mb-2">
                 مدل خودرو
               </label>
-              {selectedBrand === "other" ? (
-                <Input
-                  type="text"
-                  placeholder="نام مدل را وارد کنید"
-                  value={customModelInput}
-                  onChange={(e) => handleCustomModelChange(e.target.value)}
-                  className="
-                   bg-[#1C1638]
-                   border-[#3B2A66]
-                   text-white
-                   placeholder:text-[#8B78C7]
-                   focus:border-[#8B5CF6]
-                   focus:ring-[#8B5CF6]
-                  "
-                />
-              ) : (
-                <select
-                  value={formData.car_model}
-                  onChange={(e) => handleModelChange(e.target.value)}
-                  disabled={dataLoading || models.length === 0}
-                  className="
-                  w-full
-                  rounded-md
-                  border
-                  border-[#3B2A66]
-                  bg-[#1C1638]
-                  px-3
-                  py-2
-                  text-white
-                  focus:border-[#8B5CF6]
-                  focus:outline-none
-                  focus:ring-1
-                  focus:ring-[#8B5CF6]
-                  disabled:opacity-50
-                  "
-                >
-                  <option value="">انتخاب مدل</option>
-                  {models.map((model) => (
-                    <option key={model.id} value={model.name}>
-                      {model.name}
-                    </option>
-                  ))}
-                </select>
-              )}
+              <select
+                value={formData.car_model}
+                onChange={(e) =>
+                  setFormData({ ...formData, car_model: e.target.value })
+                }
+                className="
+                w-full
+                rounded-md
+                border
+                border-[#3B2A66]
+                bg-[#1C1638]
+                px-3
+                py-2
+                text-white
+                focus:border-[#8B5CF6]
+                focus:outline-none
+                focus:ring-1
+                focus:ring-[#8B5CF6]
+                "
+              >
+                {CAR_MODELS[selectedBrand].map((model) => (
+                  <option key={model} value={model}>
+                    {model}
+                  </option>
+                ))}
+              </select>
             </div>
 
             {/* Buttons */}
